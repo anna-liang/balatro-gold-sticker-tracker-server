@@ -10,7 +10,13 @@ const jokerProgressTemplatePath = './store/joker-progress-template.json';
 
 app.get('/', async (_, res) => {
   const jokerData = require(jokerProgressTemplatePath);
-  res.send(jokerData);
+  const jokers = Object.keys(jokerData).map((key) => {
+    return {
+      id: parseInt(key),
+      ...jokerData[key],
+    };
+  });
+  res.send(jokers);
 });
 
 app.put('/joker/:id', jsonParser, async (req, res) => {
