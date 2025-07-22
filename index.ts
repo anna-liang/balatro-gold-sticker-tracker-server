@@ -7,9 +7,18 @@ app.use(cors());
 const jsonParser = bodyParser.json();
 
 const jokerProgressTemplatePath = './store/joker-progress-template.json';
+const jokerProgressPath = './store/joker-progress.json';
+
+const fetchJokerProgress = () => {
+  const fs = require('fs');
+  const jokerData = fs.existsSync(jokerProgressPath)
+    ? require(jokerProgressPath)
+    : require(jokerProgressTemplatePath);
+  return jokerData;
+};
 
 app.get('/', async (_, res) => {
-  const jokerData = require(jokerProgressTemplatePath);
+  const jokerData = fetchJokerProgress();
   const jokers = Object.keys(jokerData).map((key) => {
     return {
       id: parseInt(key),
@@ -26,7 +35,8 @@ app.put('/joker/:id', jsonParser, async (req, res) => {
     return res
       .status(400)
       .json({ message: 'Missing required fields id or sticker.' });
-  const jokerData = require(jokerProgressTemplatePath);
+  const fs = require('fs');
+  const jokerData = fetchJokerProgress();
   const oldJoker = jokerData[id];
   if (!oldJoker) return res.status(404).json({ message: 'Joker not found' }); // TODO: check that this doesn't throw error trying to access at id that doesn't exist
   const joker = {
@@ -35,14 +45,9 @@ app.put('/joker/:id', jsonParser, async (req, res) => {
   };
   // save to file
   jokerData[id] = joker;
-  const fs = require('fs');
-  fs.writeFile(
-    jokerProgressTemplatePath,
-    JSON.stringify(jokerData),
-    function (err) {
-      if (err) console.log(err);
-    },
-  );
+  fs.writeFile(jokerProgressPath, JSON.stringify(jokerData), function (err) {
+    if (err) console.log(err);
+  });
   res.send(joker);
 });
 
